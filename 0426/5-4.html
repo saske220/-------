@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>変数のコントロール</title>
+    <style>
+      body {
+        margin: 0;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      //モジュールの読み込み
+      import * as THREE from "https://cdn.skypack.dev/three@0.132";
+      import OrbitControls from "https://cdn.skypack.dev/threejs-orbit-controls";
+      import Stats from "https://cdn.skypack.dev/stats.js.fps";
+      import GUI from "https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm";
+
+      //GUIの作成
+      const gui = new GUI();
+
+      //スタッツの作成＆設定
+      const stats = new Stats();
+      stats.showPanel(0);
+      document.body.appendChild(stats.dom);
+
+      //シーンの作成
+      const scene = new THREE.Scene();
+
+      //カメラの作成＆設定
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      );
+      camera.position.set(1, 1, 2);
+
+      //レンダラーの作成＆設定
+      const renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      //コントローラーの作成＆設定
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+
+      //バッファジオメトリで三角形を複数生成
+      //   const count = 50;
+
+      const obj = {
+        count: 50,
+      };
+
+      let buffer;
+
+      gui.add(obj, "count", 0, 100, 1).onChange((value) => {
+        scene.remove(buffer); //シーンから削除
+        const bufferGeometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array(9 * value);
+
+        for (let i = 0; i < 9 * value; i++) {
+          vertices[i] = (Math.random() - 0.5) * 2;
+          console.log(vertices[i]);
+        }
+
+        bufferGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(vertices, 3)
+        );
+
+        const bufferMaterial = new THREE.MeshBasicMaterial({ wireframe: true });
+        buffer = new THREE.Mesh(bufferGeometry, bufferMaterial); //constを削除
+        scene.add(buffer);
+      });
+
+      //アニメーション関数の定義
+      function animate() {
+        stats.begin();
+        controls.update();
+        renderer.render(scene, camera);
+        stats.end();
+
+        requestAnimationFrame(animate);
+      }
+
+      //アニメーション関数の実行
+      animate();
+
+      //ブラウザリサイズ時の関数の定義
+      function onWindowResize() {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      //ブラウザにリサイズイベントを登録
+      window.addEventListener("resize", onWindowResize);
+    </script>
+  </body>
+</html>

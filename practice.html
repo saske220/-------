@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>three.jsの基礎</title>
+  </head>
+
+  <style>
+    body {
+      margin: 0;
+      background: url(./images/bgimage1.png) no-repeat center / cover;
+    }
+  </style>
+  <body>
+    <script>
+      function loadGlb() {
+        // canvasタグ
+        const canvas = document.querySelector("#canvas");
+
+        // 画面に表示するためのレンダラー
+        const renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+        });
+        renderer.setPixelRatio(1);
+        renderer.setSize(canvas.width, canvas.height);
+        renderer.setClearColor(0xffffff, 1.0);
+
+        // カメラ
+        const camera = new THREE.PerspectiveCamera(
+          45,
+          width / height,
+          1,
+          20000
+        );
+        // ※ハマりポイント2
+        camera.position.set(3000, 1000, 1000);
+
+        // コントロール
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.autoRotate = true; // くるくる回す
+
+        // シーンを作成
+        const scene = new THREE.Scene();
+        const loader = new THREE.GLTFLoader();
+
+        // ※ハマりポイント3
+        const url = "glbファイルのURL";
+        let model = null;
+
+        // ロード
+        loader.load(
+          url,
+          function (glb) {
+            model = glb.scene;
+            model.scale.set(400.0, 400.0, 400.0);
+            model.position.set(0, -400, 0);
+            scene.add(model);
+          },
+          function (error) {
+            console.log("An error happened");
+            console.log(error);
+          }
+        );
+        renderer.gammaOutput = true;
+        renderer.gammaFactor = 2.2;
+
+        // ライト
+        const light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(1000, 1000, 100);
+        scene.add(light);
+
+        // ライト追加 ※ハマりポイント4
+        const ambientLight = new THREE.AmbientLight(0x555555);
+        scene.add(ambientLight);
+
+        // 起動
+        tick();
+
+        function tick() {
+          // リサイズ
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+
+          controls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(tick);
+        }
+      }
+    </script>
+  </body>
+</html>

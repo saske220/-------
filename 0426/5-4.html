@@ -54,18 +54,16 @@
 
       const obj = {
         count: 50,
+        size: 2,
       };
 
-      let buffer;
-
-      gui.add(obj, "count", 0, 100, 1).onChange((value) => {
-        scene.remove(buffer); //シーンから削除
+      //関数式に変更
+      const drawBuffer = (obj) => {
         const bufferGeometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array(9 * value);
+        const vertices = new Float32Array(9 * obj.count);
 
-        for (let i = 0; i < 9 * value; i++) {
-          vertices[i] = (Math.random() - 0.5) * 2;
-          console.log(vertices[i]);
+        for (let i = 0; i < 9 * obj.count; i++) {
+          vertices[i] = (Math.random() - 0.5) * obj.size;
         }
 
         bufferGeometry.setAttribute(
@@ -74,10 +72,30 @@
         );
 
         const bufferMaterial = new THREE.MeshBasicMaterial({ wireframe: true });
-        buffer = new THREE.Mesh(bufferGeometry, bufferMaterial); //constを削除
+        const mesh = new THREE.Mesh(bufferGeometry, bufferMaterial);
+        return mesh;
+      };
+
+      let buffer = drawBuffer(obj);
+      scene.add(buffer);
+
+      gui.add(obj, "count", 0, 100, 1).onChange((value) => {
+        scene.remove(buffer);
+        buffer.material.dispose();
+        buffer.geometry.dispose();
+
+        buffer = drawBuffer(obj);
         scene.add(buffer);
       });
 
+      gui.add(obj, "size", 1, 5, 0.1).onChange((value) => {
+        scene.remove(buffer);
+        buffer.material.dispose();
+        buffer.geometry.dispose();
+
+        buffer = drawBuffer(obj);
+        scene.add(buffer);
+      });
       //アニメーション関数の定義
       function animate() {
         stats.begin();

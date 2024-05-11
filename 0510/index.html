@@ -47,7 +47,7 @@
 
       //パーティクル
 
-      const texture = new THREE.TextureLoader().load("./textures/1.png");
+      const texture = new THREE.TextureLoader().load("./textures/7.png");
 
       //   const particlesGeometry = new THREE.SphereGeometry(1, 16, 32);
       //   const material = new THREE.MeshStandardMaterial();
@@ -57,9 +57,11 @@
       const bufferGeometry = new THREE.BufferGeometry();
       const count = 2000;
       const vertices = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
 
       for (let i = 0; i < 9 * count; i++) {
         vertices[i] = (Math.random() - 0.5) * 10;
+        colors[i] = Math.random();
       }
       console.log(vertices);
 
@@ -67,13 +69,23 @@
         "position",
         new THREE.BufferAttribute(vertices, 3)
       );
+      bufferGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(colors, 3)
+      );
 
       //プロパティを調整
       const pointMaterial = new THREE.PointsMaterial({
-        size: 0.01,
-        sizeAttenuation: true,
-        color: 0xffffff,
+        size: 0.5,
+        alphaMap: texture,
+        transparent: true,
+        depthWrite: false,
+        vertexColors: true, //追加
+        blending: THREE.AdditiveBlending, //追加
+        color: 0xff00ff,
       });
+
+      pointMaterial.map = texture; //テクスチャを貼る
 
       //メッシュ化
       const particles = new THREE.Points(bufferGeometry, pointMaterial);
@@ -90,11 +102,29 @@
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.1;
+      const clock = new THREE.Clock();
 
       //アニメーション
       const animate = () => {
         stats.begin();
         controls.update();
+        const elapsedTime = clock.getElapsedTime();
+
+        for (let i = 0; i < count; i++) {
+          const i3 = i * 3;
+          bufferGeometry.attributes.position.array[i3] = Math.sin(
+            0.01 * elapsedTime * i + Math.sin(elapsedTime) // x座標を更新
+          );
+          bufferGeometry.attributes.position.array[i3 + 1] = Math.cos(
+            0.01 * elapsedTime * i + Math.cos(elapsedTime) // y座標を更新
+          );
+          bufferGeometry.attributes.position.array[i3 + 2] = Math.sin(
+            0.01 * elapsedTime + Math.sin(elapsedTime * i) // z座標を更新
+          );
+        }
+
+        bufferGeometry.attributes.position.needsUpdate = true;
+
         renderer.render(scene, camera);
         stats.end();
 
